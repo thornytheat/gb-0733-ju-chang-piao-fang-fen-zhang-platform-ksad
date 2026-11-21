@@ -67,3 +67,14 @@ dialog::backdrop { background: #20103360; }
 .import-form output { color: var(--bad); overflow-wrap: anywhere; }
 .import-form .btn { justify-self: end; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* M8 拒付归集 */
+.chargeback { margin-top: 14px; }
+.chargeback-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.chargeback-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 8px; padding: 12px var(--pad); border-bottom: 1px solid var(--line); }
+.chargeback-kpis .kpi { background: var(--panel-2); border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 10px; }
+.chargeback-kpis .kpi--focus strong { color: var(--accent-ink); }
+.chargeback-meta { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; padding: 8px var(--pad); color: var(--ink-2); font-size: 12px; border-bottom: 1px solid var(--line); }
+.chargeback-meta output { margin-left: auto; color: var(--bad); }
+.chargeback [aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); font-weight: 700; }
+.chargeback .empty { padding: 18px var(--pad); color: var(--ink-2); }

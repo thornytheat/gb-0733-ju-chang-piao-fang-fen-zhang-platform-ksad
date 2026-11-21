@@ -23,7 +23,9 @@ class Browse:
 
     def page(self, entries, **extra):
         def matches(row):
-            tokens = [str(row.get(field, '')) for field in ('ticket', 'show', 'venue', 'key', 'scan_id', 'refund_id', 'code')]
+            tokens = [str(row.get(field, '')) for field in
+                      ('ticket', 'show', 'venue', 'key', 'scan_id', 'refund_id', 'notice_id',
+                       'reversal_id', 'channel', 'code')]
             if 'raw' in row:
                 tokens.extend(row['raw'])
             return ((not self.show or self.show == row.get('show') or self.show in row.get('raw', []))

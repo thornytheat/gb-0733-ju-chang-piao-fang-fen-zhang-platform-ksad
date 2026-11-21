@@ -32,6 +32,20 @@ def test_every_module_has_a_live_preview_endpoint_and_missing_run_response(clien
         assert (missing.status_code, missing.json()['code']) == (404, 'RUN_NOT_FOUND')
 
 
+def test_chargeback_preview_is_read_only_empty_and_home_exposes_module(client):
+    preview = client.get('/api/chargebacks/sample')
+    assert preview.status_code == 200 and preview.json() == {
+        'items': [], 'total': 0, 'offset': 0, 'limit': 50, 'empty': True,
+        'policy': 'setoff', 'totals': {}}
+    home = client.get('/').text
+    assert 'data-module="chargebacks"' in home and '拒付归集核对' in home
+    guarded = client.post('/api/chargebacks/sample/notices', json={
+        'notice_id': 'X', 'ticket': '00109', 'channel': 'wx', 'policy': 'setoff',
+        'occurred_at': '2026-11-20T10:00:00+08:00', 'evidence_due_at': '2026-11-25T10:00:00+08:00',
+        'amount': '1', 'unit': '元'})
+    assert (guarded.status_code, guarded.json()['code']) == (422, 'CHARGEBACK_NO_PREVIEW')
+
+
 def test_invalid_file_manifest_never_publishes_partial_run(client, upload, files):
     files.pop('rights.csv')
     result = upload(files)

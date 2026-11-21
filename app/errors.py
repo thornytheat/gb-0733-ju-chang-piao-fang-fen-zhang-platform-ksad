@@ -10,3 +10,10 @@ class RowError(Exception):
     def __init__(self, code):
         self.code = code
         super().__init__(code)
+
+
+class ChargebackError(Exception):
+    def __init__(self, code, detail=None):
+        self.code = code
+        self.detail = detail or {}
+        super().__init__(code)

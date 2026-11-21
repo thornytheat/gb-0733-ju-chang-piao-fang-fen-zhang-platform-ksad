@@ -33,3 +33,11 @@
 - 场馆应收只计正常场次的有效核销。未结包括未核销、停演未退完及未分配票款。
 - 源行守恒按逻辑记录计，`逻辑行 = 采信 + 隔离 + 空行 + 表头`。相互冲突的每条原始记录只计一次。
 - ZIP 同时保留本次输入、原分账来源和结果 CSV。`manifest.json` 含入参、版本、运行编号、原发布编号、时间、耗时、逐文件 SHA-256、勾稽检查及汇总。JSON 和原始文件逐字保留票码，CSV 复核时请将票码列按文本导入。
+
+## 拒付归集（M8）
+
+拒付数据不进入五份 CSV，由 JSON 接口登记到独立台账。通知字段 `notice_id`、`ticket`、`channel`、`policy`（`setoff` 或 `reallocate`）、`occurred_at`、`evidence_due_at`、`amount`、`unit`、`note`；金额与时间沿用票源同款校验，归一为整数分和 UTC 秒级时间。`ticket` 必须是该批次已采信票码，拒付金额须为正且不超过该票净收款（实收减已入账退款）。
+
+`notice_id` 是全局幂等键：同内容重试返回 `reused=true` 和首次快照，不产生第二次扣款；同号不同内容返回 409 `NOTICE_ID_CONFLICT`。拆分登记在 URL 上带 `parent_notice_id`，子单须与父单同票码同渠道，金额累计不得超过父单；父单状态置 `SPLIT` 后退出重放，占用完全由子单表达，因此父子不会重复扣款。补正接口以独立 `reversal_id` 写入 `chargeback_reversals`（每通知唯一），`reversed_at` 不得早于拒付时刻；已拆分父单须等全部子单补正后才能补正，重复补正返回 `NOTICE_REVERSAL_DUPLICATE`。任何通知或补正都不物理删除。
+
+事件金额符号：归集占用与待追回为负、补正红冲为正。`setoff` 按场次键升序占用该票未结池（未分配票款作为虚拟场次 `UNASSIGNED` 入池），`reallocate` 用原权益权重做最大余数法分摊并以原分账为限。每次登记后整器重放生成 `chargeback_snapshots`，写库与通知/补正在同一 `BEGIN IMMEDIATE` 事务，失败回滚并保留上一版快照。对账单 ZIP 含 `chargeback-notices.csv`、`chargeback-reversals.csv`、`chargeback-events.csv`、按场馆/场次/票码汇总、`chargeback-summary.csv` 与带逐文件哈希的 `manifest.json`。

@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="/static/layout.css">
   <link rel="stylesheet" href="/static/components.css">
   <script src="/static/workbench.js" type="module"></script>
+  <script src="/static/chargeback.js" type="module"></script>
 </head>
 <body data-run="{{ manifest.run_id }}">
   <div class="app">
@@ -53,6 +54,7 @@
         </div>
         {% include 'ledger.html' %}
         {% include 'evidence.html' %}
+        {% include 'chargeback.html' %}
       </main>
       <footer class="statusbar">
         <span class="state state--ok">金额勾稽通过</span>

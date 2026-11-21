@@ -31,9 +31,28 @@ python -m pytest -q
 | 退款冲正 | 原分账限额、冲正与剩余额度 | `GET /api/refunds/{run_id}` |
 | 场馆勾稽 | 逐票、逐场、逐馆与源行核对 | `GET /api/reconcile/{run_id}` |
 | 结算凭证 | 运行清单、隔离行、凭证 ZIP | `GET /api/evidence/{run_id}` |
+| 拒付归集 | 通知/事件/补正台账、两策略口径与对账单 | `GET /api/chargebacks/{run_id}` |
 
 各模块读取接口支持 `run_id=sample` 的预览和 `view`、`q`、`show`、`limit`、`offset` 查询。接口文档在 `/docs`。发布接口是 `POST /api/runs/sample` 与 `POST /api/runs`，重跑是 `POST /api/runs/{run_id}/rerun`，下载是 `GET /api/evidence/{run_id}/export`。
 
 单一账册保留首次发布的票款、权益和场次定义。修订用完整快照提交，允许更新核销，新增停演事实和退款。历史批次可重跑或导出，旧批次重跑不会回退当前账册。每个文件限 512 KiB 和 12,000 条逻辑行。本项目覆盖人民币停演退款和整套票按场分账。
+
+## 拒付归集
+
+渠道在结算后判拒付时，已发出的分账（结算账 `payable_cents`）绝不改写，M8 只在独立台账追加拒付事件。每个批次首次登记时确定归集策略，之后同批次不可混用：
+
+- `setoff`（默认）先占用后续未结应收：按场次键升序冲减该票的未结余额（含未分配票款），占不满的部分挂「待渠道追回」，场馆已发出回款不受影响。
+- `reallocate` 重算原场次份额：按原权益权重用最大余数法生成负向份额调整，只动原场次净应收、不占后续未结；调整以原分账为限额，超出部分仍挂待追回。
+
+同一拒付通知单号 `notice_id` 是幂等键：重试返回首次结果、不重复扣款；同号不同内容返回 `NOTICE_ID_CONFLICT`。拆分用 `parent_notice_id` 关联，子单金额合计不得超过父单，父单一经拆分即退出归集、占用完全由子单表达。渠道下次结账前补齐证据走补正接口，红冲占用并回退未结池，通知与补正记录均保留不删。登记在单事务内完成，任一步失败整体回滚，上一版归集快照与对账单保持可读。
+
+| 动作 | 接口 |
+|---|---|
+| 登记拒付（拆分加 `?parent_notice_id=`） | `POST /api/chargebacks/{run_id}/notices` |
+| 渠道补正 | `POST /api/chargebacks/{run_id}/notices/{notice_id}/reversal` |
+| 归集核对视图（`notices`/`events`/`reversals`/`shows`/`venues`/`tickets`） | `GET /api/chargebacks/{run_id}?view=` |
+| 对账单 ZIP 下载 | `GET /api/chargebacks/{run_id}/statement` |
+
+样例预览 `run_id=sample` 只读，拒付登记须先发布批次。暂不包含权限控制与批量运营操作。
 
 `app/modules` 放各业务规则，`sample_data` 放本机样例，`tests` 放业务与原子性回归。[规则与样例登记](docs/DEPTH.md)

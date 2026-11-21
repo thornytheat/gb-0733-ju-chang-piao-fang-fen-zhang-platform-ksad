@@ -1,0 +1,42 @@
+<section class="panel chargeback" aria-labelledby="chargeback-title" id="chargeback-panel" data-run="{{ manifest.run_id }}">
+  <div class="panel__head evidence-head">
+    <div class="evidence-title">
+      <h2 id="chargeback-title">拒付归集核对</h2>
+      <span>已发出分账不改写，只追加拒付事件与补正留痕</span>
+    </div>
+    <div class="chargeback-actions">
+      <button class="btn btn--quiet" type="button" data-cb-view="notices">通知台账</button>
+      <button class="btn btn--quiet" type="button" data-cb-view="events">占用事件</button>
+      <button class="btn btn--quiet" type="button" data-cb-view="venues">场馆汇总</button>
+      <a class="btn btn--primary" href="/api/chargebacks/{{ manifest.run_id }}/statement" download>对账单下载 <span aria-hidden="true">↓</span></a>
+    </div>
+  </div>
+  <div class="chargeback-kpis" aria-label="拒付归集合计">
+    <div class="kpi"><span>拒付申请</span><strong data-cb-total="requested_cents">¥0.00</strong></div>
+    <div class="kpi"><span>已占用净应收</span><strong data-cb-total="applied_cents">¥0.00</strong></div>
+    <div class="kpi kpi--focus"><span>场馆净应收</span><strong data-cb-total="venue_net_receivable_cents">—</strong></div>
+    <div class="kpi"><span>待渠道追回</span><strong data-cb-total="pending_recovery_cents">¥0.00</strong></div>
+    <div class="kpi"><span>补正释放</span><strong data-cb-total="reversed_cents">¥0.00</strong></div>
+    <div class="kpi"><span>剩余可占用未结</span><strong data-cb-total="available_unsettled_cents">—</strong></div>
+  </div>
+  <div class="chargeback-meta">
+    <span>归集策略 <code data-cb-policy>—</code></span>
+    <span>通知 <b data-cb-meta="notice_count">0</b> 笔 · 补正 <b data-cb-meta="reversed_count">0</b> 笔</span>
+    <span>生成时间 <time data-cb-generated></time></span>
+    <output id="chargeback-message" aria-live="polite"></output>
+  </div>
+  <form class="filters" id="chargeback-filters">
+    <label class="sr-only" for="cb-q">搜票码、单号或场次</label>
+    <input id="cb-q" placeholder="搜票码、单号或场次" maxlength="64" type="search">
+    <button class="btn" type="submit">筛选</button>
+    <output id="cb-status" aria-live="polite"></output>
+  </form>
+  <div class="evidence-scroll" tabindex="0" aria-label="拒付归集明细">
+    <table class="ledger evidence-table" aria-label="拒付归集明细">
+      <thead id="cb-columns"></thead>
+      <tbody id="cb-rows"></tbody>
+    </table>
+    <p id="cb-empty" class="empty" hidden>该批次尚未登记拒付。对账单在首次登记后可下载。</p>
+    <noscript>启用 JavaScript 查看拒付归集明细。</noscript>
+  </div>
+</section>
